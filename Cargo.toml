@@ -1,0 +1,17 @@
+[package]
+name = "slack_client_rs"
+version = "0.0.1"
+edition = "2021"
+authors = ["MoghTech"]
+description = "simple slack client to post block messages with a callback url."
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version="0.11.11", features=["json"] }
+serde = "1.0"
+serde_json = "1.0"
+serde_derive = "1.0"
+strum = "0.24.0"
+strum_macros = "0.24.0"
