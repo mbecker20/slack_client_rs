@@ -16,14 +16,34 @@ impl Client {
         }
     }
 
-    pub async fn send_message(&self, text: &str, blocks: impl Into<Option<Vec<Block>>>) -> Result<Response, reqwest::Error> {
-        self
-            .http_client
+    pub async fn send_message(
+        &self,
+        text: impl Into<String>,
+        blocks: impl Into<Option<Vec<Block>>>,
+    ) -> Result<Response, reqwest::Error> {
+        self.http_client
             .post(&self.url)
             .header("Content-Type", "application/json")
             .json(&SlackMessageBody {
-                text: text.to_string(),
+                text: text.into(),
                 blocks: blocks.into(),
+            })
+            .send()
+            .await
+    }
+
+    pub async fn send_formatted_message(
+        &self,
+        header: impl Into<String>,
+        info: impl Into<String>,
+    ) -> Result<Response, reqwest::Error> {
+        let header: String = header.into();
+        self.http_client
+            .post(&self.url)
+            .header("Content-Type", "application/json")
+            .json(&SlackMessageBody {
+                text: header.clone(),
+                blocks: Some(vec![Block::header(header), Block::section(info)]),
             })
             .send()
             .await

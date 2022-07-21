@@ -1,17 +1,17 @@
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
 
 #[derive(Serialize)]
 pub struct BlockText {
     #[serde(rename = "type")]
-    pub txt_type: String,
+    pub txt_type: TextType,
     pub text: String,
 }
 
 #[derive(Serialize)]
 pub struct Block {
     #[serde(rename = "type")]
-    pub msg_type: String,
+    pub msg_type: MsgType,
     pub text: BlockText,
 }
 
@@ -32,14 +32,22 @@ pub enum MsgType {
 }
 
 impl Block {
-    pub fn new(msg_type: MsgType, txt_type: TextType, text: &str) -> Block {
+    pub fn new(msg_type: MsgType, txt_type: TextType, text: impl Into<String>) -> Block {
         Block {
-            msg_type: msg_type.to_string(),
+            msg_type: msg_type,
             text: BlockText {
-                txt_type: txt_type.to_string(),
-                text: text.to_string(),
+                txt_type: txt_type,
+                text: text.into(),
             },
         }
+    }
+
+    pub fn header(text: impl Into<String>) -> Block {
+        Block::new(MsgType::Header, TextType::PlainText, text)
+    }
+
+    pub fn section(text: impl Into<String>) -> Block {
+        Block::new(MsgType::Section, TextType::Mrkdwn, text)
     }
 }
 
