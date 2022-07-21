@@ -35,15 +35,20 @@ impl Client {
     pub async fn send_formatted_message(
         &self,
         header: impl Into<String>,
-        info: impl Into<String>,
+        info: impl Into<Option<String>>,
     ) -> Result<Response, reqwest::Error> {
         let header: String = header.into();
+        let info: Option<String> = info.into();
+        let blocks = match &info {
+            Some(info) => Some(vec![Block::header(header.clone()), Block::section(info)]),
+            None => Some(vec![Block::header(header.clone())]),
+        };
         self.http_client
             .post(&self.url)
             .header("Content-Type", "application/json")
             .json(&SlackMessageBody {
-                text: header.clone(),
-                blocks: Some(vec![Block::header(header), Block::section(info)]),
+                text: header,
+                blocks,
             })
             .send()
             .await
