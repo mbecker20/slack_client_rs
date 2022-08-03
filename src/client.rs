@@ -32,7 +32,7 @@ impl Client {
             .await
     }
 
-    pub async fn send_formatted_message(
+    pub async fn send_message_with_header(
         &self,
         header: impl Into<String>,
         info: impl Into<Option<String>>,
@@ -52,5 +52,10 @@ impl Client {
             })
             .send()
             .await
+    }
+
+    pub async fn send_mrkdwn_message(&self, text: impl Into<String>) -> Result<Response, reqwest::Error> {
+        let text = text.into();
+        self.send_message(&text, vec![Block::section(&text)]).await
     }
 }
