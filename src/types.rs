@@ -34,9 +34,9 @@ pub enum MsgType {
 impl Block {
     pub fn new(msg_type: MsgType, txt_type: TextType, text: impl Into<String>) -> Block {
         Block {
-            msg_type: msg_type,
+            msg_type,
             text: BlockText {
-                txt_type: txt_type,
+                txt_type,
                 text: text.into(),
             },
         }

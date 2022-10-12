@@ -1,6 +1,6 @@
 [package]
 name = "slack_client_rs"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 authors = ["MoghTech"]
 description = "simple slack client to post block messages with a callback url."
@@ -15,3 +15,4 @@ serde_json = "1.0"
 serde_derive = "1.0"
 strum = "0.24.0"
 strum_macros = "0.24.0"
+anyhow = "1.0"
