@@ -12,7 +12,8 @@ pub struct BlockText {
 pub struct Block {
     #[serde(rename = "type")]
     pub msg_type: MsgType,
-    pub text: BlockText,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<BlockText>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Display, EnumString, PartialEq, Hash, Eq, Clone, Copy)]
@@ -24,11 +25,12 @@ pub enum TextType {
 }
 
 #[derive(Serialize, Deserialize, Debug, Display, EnumString, PartialEq, Hash, Eq, Clone, Copy)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum MsgType {
     Header,
     Section,
+    Divider,
 }
 
 impl Block {
@@ -38,7 +40,8 @@ impl Block {
             text: BlockText {
                 txt_type,
                 text: text.into(),
-            },
+            }
+            .into(),
         }
     }
 
@@ -48,6 +51,13 @@ impl Block {
 
     pub fn section(text: impl Into<String>) -> Block {
         Block::new(MsgType::Section, TextType::Mrkdwn, text)
+    }
+
+    pub fn divider() -> Block {
+        Block {
+            msg_type: MsgType::Divider,
+            text: None,
+        }
     }
 }
 
