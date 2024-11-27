@@ -1,6 +1,6 @@
 [package]
 name = "slack_client_rs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["MoghTech"]
 description = "simple slack client to post block messages with a callback url."
@@ -8,8 +8,14 @@ license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["reqwest/default-tls"]
+rustls = ["reqwest/rustls-tls"]
+
 [dependencies]
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", default-features = false, features = [
+  "json", "charset", "http2", "macos-system-configuration"
+] }
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
