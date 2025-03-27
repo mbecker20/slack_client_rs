@@ -12,9 +12,9 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(url: &str) -> Client {
+    pub fn new(url: impl Into<String>) -> Client {
         Client {
-            url: url.to_string(),
+            url: url.into(),
             http_client: reqwest::Client::new(),
         }
     }
