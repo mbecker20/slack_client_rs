@@ -135,7 +135,9 @@ impl From<Vec<OwnedBlock>> for OwnedBlocks {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct OwnedBlock {
+    #[serde(rename = "type")]
     pub msg_type: MsgType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<OwnedBlockText>,
 }
 
@@ -176,6 +178,7 @@ impl OwnedBlock {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct OwnedBlockText {
+    #[serde(rename = "type")]
     pub txt_type: TextType,
     pub text: String,
 }
