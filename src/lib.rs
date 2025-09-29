@@ -19,17 +19,17 @@ impl Client {
         }
     }
 
-    pub async fn send_message(
+    pub async fn send_message<'a>(
         &self,
-        text: impl Into<String>,
-        blocks: impl Into<Option<Vec<Block>>>,
+        text: &'a str,
+        blocks: impl Into<Option<&'a [Block<'a>]>>,
     ) -> anyhow::Result<Response> {
         let res = self
             .http_client
             .post(&self.url)
             .header("Content-Type", "application/json")
             .json(&SlackMessageBody {
-                text: text.into(),
+                text,
                 blocks: blocks.into(),
             })
             .send()
@@ -45,20 +45,18 @@ impl Client {
 
     pub async fn send_message_with_header(
         &self,
-        header: impl Into<String>,
-        info: impl Into<Option<String>>,
+        header: &str,
+        info: impl Into<Option<&str>>,
     ) -> anyhow::Result<Response> {
-        let header: String = header.into();
-        let info: Option<String> = info.into();
-        let blocks = match &info {
-            Some(info) => Some(vec![Block::header(header.clone()), Block::section(info)]),
-            None => Some(vec![Block::header(header.clone())]),
+        let blocks = match info.into() {
+            Some(info) => Some(vec![Block::header(header), Block::section(info)]),
+            None => Some(vec![Block::header(header)]),
         };
-        self.send_message(header, blocks).await
+        self.send_message(header, blocks.as_deref()).await
     }
 
-    pub async fn send_mrkdwn_message(&self, text: impl Into<String>) -> anyhow::Result<Response> {
-        let text = text.into();
-        self.send_message(&text, vec![Block::section(&text)]).await
+    pub async fn send_mrkdwn_message(&self, text: &str) -> anyhow::Result<Response> {
+        self.send_message(&text, vec![Block::section(text)].as_slice())
+            .await
     }
 }
