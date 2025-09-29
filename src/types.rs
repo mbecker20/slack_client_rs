@@ -75,6 +75,7 @@ pub struct OwnedSlackMessageBody<'a> {
     pub blocks: Option<&'a [OwnedBlock]>,
 }
 
+#[derive(Debug, Clone, Default)]
 pub struct OwnedBlocks(Vec<OwnedBlock>);
 
 impl OwnedBlocks {
@@ -122,7 +123,13 @@ impl AsRef<[OwnedBlock]> for OwnedBlocks {
     }
 }
 
-#[derive(Debug, Serialize)]
+impl From<Vec<OwnedBlock>> for OwnedBlocks {
+    fn from(value: Vec<OwnedBlock>) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct OwnedBlock {
     pub msg_type: MsgType,
     pub text: Option<OwnedBlockText>,
@@ -163,7 +170,7 @@ impl OwnedBlock {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct OwnedBlockText {
     pub txt_type: TextType,
     pub text: String,
