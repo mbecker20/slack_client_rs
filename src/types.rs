@@ -1,14 +1,14 @@
 use serde_derive::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct BlockText {
     #[serde(rename = "type")]
     pub txt_type: TextType,
     pub text: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Block {
     #[serde(rename = "type")]
     pub msg_type: MsgType,
@@ -16,7 +16,7 @@ pub struct Block {
     pub text: Option<BlockText>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Display, EnumString, PartialEq, Hash, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Hash, Eq, Clone, Copy, Serialize, Deserialize, Display, EnumString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum TextType {
@@ -24,7 +24,7 @@ pub enum TextType {
     Mrkdwn,
 }
 
-#[derive(Serialize, Deserialize, Debug, Display, EnumString, PartialEq, Hash, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Hash, Eq, Clone, Copy, Serialize, Deserialize, Display, EnumString)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum MsgType {
@@ -61,7 +61,7 @@ impl Block {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct SlackMessageBody {
     pub text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
