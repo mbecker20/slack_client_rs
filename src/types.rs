@@ -79,6 +79,10 @@ pub struct OwnedSlackMessageBody<'a> {
 pub struct OwnedBlocks(Vec<OwnedBlock>);
 
 impl OwnedBlocks {
+    pub fn new_with_header(text: impl Into<String>) -> OwnedBlocks {
+        OwnedBlocks(vec![OwnedBlock::header(text)])
+    }
+
     pub fn push(&mut self, block: OwnedBlock) {
         self.0.push(block);
     }
