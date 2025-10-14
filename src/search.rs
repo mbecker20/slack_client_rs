@@ -18,11 +18,11 @@ impl Client {
     /// waiting 2 seconds in between tries.
     pub async fn find_thread_ts(
         &self,
-        query: impl Into<SearchQuery<'_>>,
+        query: SearchQuery<'_>,
         post_ts_seconds: f64,
     ) -> anyhow::Result<String> {
-        let query = query.into().count(1);
-        
+        let query = query.count(1);
+
         for _try in 0..5 {
             let Some((thread_ts_f64, thread_ts)) =
                 self.search(query).await?.messages.and_then(|mut messages| {
@@ -48,12 +48,9 @@ impl Client {
     }
 
     /// https://docs.slack.dev/reference/methods/search.messages/
-    pub async fn search(
-        &self,
-        query: impl Into<SearchQuery<'_>>,
-    ) -> anyhow::Result<SearchResponse> {
+    pub async fn search(&self, query: SearchQuery<'_>) -> anyhow::Result<SearchResponse> {
         let res = self
-            .get("https://slack.com/api/search.messages", &query.into())
+            .get("https://slack.com/api/search.messages", &query)
             .await?;
         res.json().await.context("Failed to parse response body")
     }
@@ -97,8 +94,8 @@ pub struct SearchQuery<'a> {
     pub sort_dir: Option<SortDir>,
 }
 
-impl<'a> From<&'a str> for SearchQuery<'a> {
-    fn from(query: &'a str) -> Self {
+impl<'a> SearchQuery<'a> {
+    pub fn new(query: &'a str) -> Self {
         Self {
             query,
             count: None,
