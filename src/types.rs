@@ -15,12 +15,16 @@ pub enum TextType {
 pub enum MsgType {
     Header,
     Section,
+    Context,
     Divider,
 }
 
 #[derive(Debug, Serialize)]
 pub struct SlackMessageBody<'a> {
     pub text: &'a str,
+    /// For replying to a thread.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thread_ts: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocks: Option<&'a [Block<'a>]>,
 }
@@ -53,6 +57,10 @@ impl Block<'_> {
         Block::new(MsgType::Section, TextType::Mrkdwn, text)
     }
 
+    pub fn context<'a>(text: &'a str) -> Block<'a> {
+        Block::new(MsgType::Context, TextType::Mrkdwn, text)
+    }
+
     pub fn divider<'a>() -> Block<'a> {
         Block {
             msg_type: MsgType::Divider,
@@ -71,6 +79,9 @@ pub struct BlockText<'a> {
 #[derive(Debug, Serialize)]
 pub struct OwnedSlackMessageBody<'a> {
     pub text: &'a str,
+    /// For replying to a thread.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thread_ts: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocks: Option<&'a [OwnedBlock]>,
 }
@@ -102,6 +113,10 @@ impl OwnedBlocks {
 
     pub fn push_section(&mut self, text: impl Into<String>) {
         self.0.push(OwnedBlock::section(text));
+    }
+
+    pub fn push_context(&mut self, text: impl Into<String>) {
+        self.0.push(OwnedBlock::context(text));
     }
 
     pub fn push_divider(&mut self) {
@@ -159,6 +174,10 @@ impl OwnedBlock {
 
     pub fn section<'a>(text: impl Into<String>) -> OwnedBlock {
         OwnedBlock::new(MsgType::Section, TextType::Mrkdwn, text.into())
+    }
+
+    pub fn context<'a>(text: impl Into<String>) -> OwnedBlock {
+        OwnedBlock::new(MsgType::Context, TextType::Mrkdwn, text.into())
     }
 
     pub fn divider<'a>() -> OwnedBlock {

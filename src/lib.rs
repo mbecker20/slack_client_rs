@@ -1,101 +1,42 @@
-use anyhow::{anyhow, Context};
-use reqwest::{Response, StatusCode};
+use std::sync::LazyLock;
 
+pub mod search;
 pub mod types;
 
-use serde::Serialize;
-use types::*;
+mod send;
+
+static DEFAULT_HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(Default::default);
 
 #[derive(Debug, Clone)]
 pub struct Client {
     url: String,
-    http_client: reqwest::Client,
+    /// Optionally use a specific client.
+    http_client: Option<reqwest::Client>,
+    /// Optionally specify a bearer token
+    /// to access the search api.
+    api_token: Option<String>,
 }
 
 impl Client {
     pub fn new(url: impl Into<String>) -> Client {
         Client {
             url: url.into(),
-            http_client: reqwest::Client::new(),
+            http_client: None,
+            api_token: None,
         }
     }
 
-    pub async fn send_message<'a>(
-        &self,
-        text: &'a str,
-        blocks: impl Into<Option<&'a [Block<'a>]>>,
-    ) -> anyhow::Result<Response> {
-        self.post(&SlackMessageBody {
-            text,
-            blocks: blocks.into(),
-        })
-        .await
+    pub fn with_client(mut self, http_client: reqwest::Client) -> Client {
+        self.http_client = Some(http_client);
+        self
     }
 
-    pub async fn send_message_with_header(
-        &self,
-        header: &str,
-        info: impl Into<Option<&str>>,
-    ) -> anyhow::Result<Response> {
-        let blocks = match info.into() {
-            Some(info) => Some(vec![Block::header(header), Block::section(info)]),
-            None => Some(vec![Block::header(header)]),
-        };
-        self.send_message(header, blocks.as_deref()).await
+    pub fn with_api_token(mut self, api_token: impl Into<String>) -> Client {
+        self.api_token = Some(api_token.into());
+        self
     }
 
-    pub async fn send_mrkdwn_message(&self, text: &str) -> anyhow::Result<Response> {
-        self.send_message(&text, vec![Block::section(text)].as_slice())
-            .await
-    }
-
-    pub async fn send_owned_message<'a>(
-        &self,
-        text: &'a str,
-        blocks: impl AsRef<[OwnedBlock]>,
-    ) -> anyhow::Result<()> {
-        self.send_owned_message_manually_chunked(text, blocks.as_ref(), 50)
-            .await
-    }
-
-    pub async fn send_owned_message_manually_chunked<'a>(
-        &self,
-        text: &'a str,
-        blocks: impl AsRef<[OwnedBlock]>,
-        chunks: usize,
-    ) -> anyhow::Result<()> {
-        for blocks in blocks.as_ref().chunks(chunks) {
-            self.send_owned_message_single(text, blocks).await?;
-        }
-        Ok(())
-    }
-
-    pub async fn send_owned_message_single<'a>(
-        &self,
-        text: &'a str,
-        blocks: impl Into<Option<&[OwnedBlock]>>,
-    ) -> anyhow::Result<Response> {
-        self.post(&OwnedSlackMessageBody {
-            text,
-            blocks: blocks.into(),
-        })
-        .await
-    }
-
-    async fn post<'a, T: Serialize>(&self, json: &T) -> anyhow::Result<Response> {
-        let res = self
-            .http_client
-            .post(&self.url)
-            .header("Content-Type", "application/json")
-            .json(json)
-            .send()
-            .await?;
-        let status = res.status();
-        if status == StatusCode::OK {
-            Ok(res)
-        } else {
-            let text = res.text().await.context(format!("status: {status}"))?;
-            Err(anyhow!("status: {status} | text: {text}"))
-        }
+    fn http_client(&self) -> &reqwest::Client {
+        self.http_client.as_ref().unwrap_or(&DEFAULT_HTTP_CLIENT)
     }
 }
