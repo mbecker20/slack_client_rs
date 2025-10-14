@@ -15,7 +15,7 @@ impl Client {
     /// When posting to threads, need to find the thread ts.
     /// Right after posting message, it can take a little bit to show up,
     /// this retries the query until a ts after the post ts is found,
-    /// waiting 2 seconds in between tries.
+    /// waiting 3 seconds in between tries, with max of 10 tries.
     pub async fn find_thread_ts(
         &self,
         query: SearchQuery<'_>,
