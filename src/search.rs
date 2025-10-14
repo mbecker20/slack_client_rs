@@ -23,7 +23,7 @@ impl Client {
     ) -> anyhow::Result<String> {
         let query = query.count(1);
 
-        for _try in 0..5 {
+        for _try in 0..10 {
             let Some((thread_ts_f64, thread_ts)) =
                 self.search(query).await?.messages.and_then(|mut messages| {
                     messages
@@ -32,13 +32,13 @@ impl Client {
                         .and_then(|message| Some((message.ts.parse::<f64>().ok()?, message.ts)))
                 })
             else {
-                tokio::time::sleep(Duration::from_secs(2)).await;
+                tokio::time::sleep(Duration::from_secs(3)).await;
                 continue;
             };
             if thread_ts_f64 >= post_ts_seconds {
                 return Ok(thread_ts);
             } else {
-                tokio::time::sleep(Duration::from_secs(2)).await;
+                tokio::time::sleep(Duration::from_secs(3)).await;
             }
         }
 

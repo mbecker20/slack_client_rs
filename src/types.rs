@@ -35,6 +35,8 @@ pub struct Block<'a> {
     pub msg_type: MsgType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<BlockText<'a>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elements: Option<&'a [OwnedBlockText]>,
 }
 
 impl Block<'_> {
@@ -42,29 +44,32 @@ impl Block<'_> {
         msg_type: MsgType,
         txt_type: TextType,
         text: impl Into<Option<&'a str>>,
+        elements: impl Into<Option<&'a [OwnedBlockText]>>,
     ) -> Block<'a> {
         Block {
             msg_type,
             text: text.into().map(|text| BlockText { txt_type, text }),
+            elements: elements.into(),
         }
     }
 
     pub fn header<'a>(text: &'a str) -> Block<'a> {
-        Block::new(MsgType::Header, TextType::PlainText, text)
+        Block::new(MsgType::Header, TextType::PlainText, text, None)
     }
 
     pub fn section<'a>(text: &'a str) -> Block<'a> {
-        Block::new(MsgType::Section, TextType::Mrkdwn, text)
+        Block::new(MsgType::Section, TextType::Mrkdwn, text, None)
     }
 
-    pub fn context<'a>(text: &'a str) -> Block<'a> {
-        Block::new(MsgType::Context, TextType::Mrkdwn, text)
+    pub fn context<'a>(elements: &'a [OwnedBlockText]) -> Block<'a> {
+        Block::new(MsgType::Context, TextType::Mrkdwn, None, elements)
     }
 
     pub fn divider<'a>() -> Block<'a> {
         Block {
             msg_type: MsgType::Divider,
             text: None,
+            elements: None,
         }
     }
 }
@@ -103,8 +108,10 @@ impl OwnedBlocks {
         msg_type: MsgType,
         txt_type: TextType,
         text: impl Into<Option<String>>,
+        elements: impl Into<Option<Vec<String>>>,
     ) {
-        self.0.push(OwnedBlock::new(msg_type, txt_type, text));
+        self.0
+            .push(OwnedBlock::new(msg_type, txt_type, text, elements));
     }
 
     pub fn push_header(&mut self, text: impl Into<String>) {
@@ -154,6 +161,8 @@ pub struct OwnedBlock {
     pub msg_type: MsgType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<OwnedBlockText>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elements: Option<Vec<OwnedBlockText>>,
 }
 
 impl OwnedBlock {
@@ -161,29 +170,37 @@ impl OwnedBlock {
         msg_type: MsgType,
         txt_type: TextType,
         text: impl Into<Option<String>>,
+        elements: impl Into<Option<Vec<String>>>,
     ) -> OwnedBlock {
         OwnedBlock {
             msg_type,
             text: text.into().map(|text| OwnedBlockText { txt_type, text }),
+            elements: elements.into().map(|elements| {
+                elements
+                    .into_iter()
+                    .map(|text| OwnedBlockText { txt_type, text })
+                    .collect()
+            }),
         }
     }
 
     pub fn header(text: impl Into<String>) -> OwnedBlock {
-        OwnedBlock::new(MsgType::Header, TextType::PlainText, text.into())
+        OwnedBlock::new(MsgType::Header, TextType::PlainText, text.into(), None)
     }
 
     pub fn section<'a>(text: impl Into<String>) -> OwnedBlock {
-        OwnedBlock::new(MsgType::Section, TextType::Mrkdwn, text.into())
+        OwnedBlock::new(MsgType::Section, TextType::Mrkdwn, text.into(), None)
     }
 
     pub fn context<'a>(text: impl Into<String>) -> OwnedBlock {
-        OwnedBlock::new(MsgType::Context, TextType::Mrkdwn, text.into())
+        OwnedBlock::new(MsgType::Context, TextType::Mrkdwn, None, vec![text.into()])
     }
 
     pub fn divider<'a>() -> OwnedBlock {
         OwnedBlock {
             msg_type: MsgType::Divider,
             text: None,
+            elements: None,
         }
     }
 
@@ -191,6 +208,7 @@ impl OwnedBlock {
         Block {
             msg_type: self.msg_type,
             text: self.text.as_ref().map(OwnedBlockText::as_block_text),
+            elements: self.elements.as_deref(),
         }
     }
 }
