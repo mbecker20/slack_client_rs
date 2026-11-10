@@ -1,8 +1,7 @@
 [package]
 name = "slack_client_rs"
-version = "2.0.0"
+version = "2.1.0"
 edition = "2021"
-authors = ["MoghTech"]
 description = "simple slack client to post block messages with a callback url."
 license = "MIT"
 
@@ -10,16 +9,17 @@ license = "MIT"
 
 [features]
 default = ["reqwest/default-tls"]
-rustls = ["reqwest/rustls-tls"]
+rustls = ["reqwest/rustls"]
+native-tls = ["reqwest/native-tls"]
 
 [dependencies]
-reqwest = { version = "0.12", default-features = false, features = [
-  "json", "charset", "http2", "macos-system-configuration"
+reqwest = { version = "0.13", default-features = false, features = [
+  "json", "query", "charset", "http2", "system-proxy"
 ] }
-serde = "1"
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_derive = "1"
 strum = "0"
 strum_macros = "0"
 anyhow = "1"
-tokio = "1"
+tokio = { version = "1", features = ["time"] }
